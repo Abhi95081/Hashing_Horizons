@@ -1,0 +1,161 @@
+#include <iostream>
+#include <vector>
+#include <list>
+using namespace std;
+
+// Hash table size
+const int TABLE_SIZE = 10;
+
+// Chaining-based hash table
+class HashTableChaining {
+private:
+    vector<list<int>> table;  // Vector of lists to store chains
+    int totalElements;        // Total number of elements
+
+public:
+    HashTableChaining() : table(TABLE_SIZE), totalElements(0) {}
+
+    // Hash function
+    int hashFunction(int key) {
+        return key % TABLE_SIZE;
+    }
+
+    // Insert a key using chaining
+    void insert(int key) {
+        int index = hashFunction(key);
+        table[index].push_back(key);
+        totalElements++;
+    }
+
+    // Search for a key
+    bool search(int key) {
+        int index = hashFunction(key);
+        for (int val : table[index]) {
+            if (val == key) return true;
+        }
+        return false;
+    }
+
+    // Display the hash table
+    void display() {
+        for (int i = 0; i < TABLE_SIZE; i++) {
+            cout << "Index " << i << ":";
+            for (int val : table[i]) {
+                cout << " -> " << val;
+            }
+            cout << endl;
+        }
+    }
+
+    // Get total number of collisions
+    int getCollisions() {
+        int collisions = 0;
+        for (auto &chain : table) {
+            if (chain.size() > 1) {
+                collisions += (chain.size() - 1);
+            }
+        }
+        return collisions;
+    }
+
+    // Get load factor
+    float getLoadFactor() {
+        return (float)totalElements / TABLE_SIZE;
+    }
+};
+
+// Open addressing (linear probing)-based hash table
+class HashTableOpenAddressing {
+private:
+    vector<int> table;
+    int totalElements;
+    int totalCollisions;
+
+public:
+    HashTableOpenAddressing() : table(TABLE_SIZE, -1), totalElements(0), totalCollisions(0) {}
+
+    // Hash function
+    int hashFunction(int key) {
+        return key % TABLE_SIZE;
+    }
+
+    // Insert a key using linear probing
+    void insert(int key) {
+        int index = hashFunction(key);
+        int originalIndex = index;
+        int i = 1;
+
+        // Linear probing to find an empty spot
+        while (table[index] != -1) {
+            totalCollisions++;
+            index = (originalIndex + i) % TABLE_SIZE;
+            i++;
+        }
+        table[index] = key;
+        totalElements++;
+    }
+
+    // Search for a key
+    bool search(int key) {
+        int index = hashFunction(key);
+        int originalIndex = index;
+        int i = 1;
+
+        while (table[index] != -1) {
+            if (table[index] == key) return true;
+            index = (originalIndex + i) % TABLE_SIZE;
+            i++;
+        }
+        return false;
+    }
+
+    // Display the hash table
+    void display() {
+        for (int i = 0; i < TABLE_SIZE; i++) {
+            if (table[i] != -1)
+                cout << "Index " << i << ": " << table[i] << endl;
+            else
+                cout << "Index " << i << ": [empty]" << endl;
+        }
+    }
+
+    // Get total number of collisions
+    int getCollisions() {
+        return totalCollisions;
+    }
+
+    // Get load factor
+    float getLoadFactor() {
+        return (float)totalElements / TABLE_SIZE;
+    }
+};
+
+int main() {
+    HashTableChaining htChaining;
+    HashTableOpenAddressing htOpenAddressing;
+
+    // Sample data
+    int keys[] = {12, 44, 13, 88, 23, 94, 11, 39, 20, 16};
+    int n = sizeof(keys) / sizeof(keys[0]);
+
+    // Insert into both hash tables
+    for (int i = 0; i < n; i++) {
+        htChaining.insert(keys[i]);
+        htOpenAddressing.insert(keys[i]);
+    }
+
+    // Display the hash tables
+    cout << "Hash Table using Chaining:\n";
+    htChaining.display();
+    cout << "\nHash Table using Open Addressing (Linear Probing):\n";
+    htOpenAddressing.display();
+
+    // Display collision count and load factor for both methods
+    cout << "\nChaining - Collisions: " << htChaining.getCollisions();
+    cout << ", Load Factor: " << htChaining.getLoadFactor() << endl;
+
+    cout << "Open Addressing - Collisions: " << htOpenAddressing.getCollisions();
+    cout << ", Load Factor: " << htOpenAddressing.getLoadFactor() << endl;
+
+    return 0;
+}
